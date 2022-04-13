@@ -1,0 +1,20 @@
+#----------------------------------------
+# Basic
+#----------------------------------------
+namespace: default
+image: dfranciswoolies/ciarecruitment-bestapiever:247904
+container_port: 80
+loadbalancer_port: 80
+domain: somenametoremember.com
+static_ip_name: web-static-ip
+
+#----------------------------------------
+# ServiceAccount
+#----------------------------------------
+ServiceAccountName: weather-sa
+gcp_service_account: gke-workload@gke-hello-world-253604.iam.gserviceaccount.com
+
+#----------------------------------------
+# Secret
+#----------------------------------------
+gcp_secert_location: projects/gke-hello-world-253604/secrets/testsecret/versions/latest
