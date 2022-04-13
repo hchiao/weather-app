@@ -3,7 +3,7 @@ apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
   name: "weather"
-  namespace: "{{ .Values.namespace }}"
+  namespace: "{{ .Values.namespace }}" 
   labels:
     app: "weather"
 spec:
@@ -16,14 +16,10 @@ spec:
       labels:
         app: "weather"
     spec:
-      #serviceAccountName: "{{ .Values.ServiceAccountName }}"
-      serviceAccountName: mypodserviceaccount
-
+      serviceAccountName: "{{ .Values.ServiceAccountName }}"
       containers:
       - name: "weather-cont"
         env:
-        #- name: APIKEY
-          #value: "1997-07-16"
         # https://secrets-store-csi-driver.sigs.k8s.io/topics/set-as-env-var.html
         - name: APIKEY
           valueFrom:
@@ -85,14 +81,19 @@ metadata:
   name: weather
   namespace: "{{ .Values.namespace }}"
   annotations:
+    # https://cloud.google.com/kubernetes-engine/docs/how-to/container-native-load-balancing#using-pod-readiness-feedback
+    # https://cloud.google.com/kubernetes-engine/docs/how-to/standalone-neg
+    # https://github.com/kubernetes/ingress-gce/issues/1463
     cloud.google.com/neg: '{"ingress": true}'
 spec:
+  type: ClusterIP
   selector:
     app: "weather"
   ports:
-    - protocol: TCP
+    - name: http-80
+      protocol: TCP
       port: {{ .Values.loadbalancer_port }}
-      targetPort: {{ .Values.containerPort }}
+      targetPort: {{ .Values.container_port }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -135,20 +136,11 @@ spec:
     secrets: |
       - resourceName: "{{ .Values.gcp_secert_location }}"
         fileName: secret.txt
-#---
-#apiVersion: v1
-#kind: ServiceAccount
-#metadata:
-  #name: "{{ .Values.ServiceAccountName }}"
-  #namespace: "{{ .Values.namespace }}"
-  #annotations:
-    #iam.gke.io/gcp-service-account: "{{ .Values.gcp_service_account }}"
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: mypodserviceaccount
-  namespace: default
+  name: "{{ .Values.ServiceAccountName }}"
+  namespace: "{{ .Values.namespace }}"
   annotations:
-    # Had issues as it couldn't pick up gcp-service-account, hard coding the value for now
-    iam.gke.io/gcp-service-account: gke-workload@gke-hello-world-253604.iam.gserviceaccount.com
+    iam.gke.io/gcp-service-account: "{{ .Values.gcp_service_account }}"

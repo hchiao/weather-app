@@ -11,7 +11,7 @@ static_ip_name: web-static-ip
 #----------------------------------------
 # ServiceAccount
 #----------------------------------------
-ServiceAccountName: weather-sa
+ServiceAccountName: mypodserviceaccount
 gcp_service_account: gke-workload@gke-hello-world-253604.iam.gserviceaccount.com
 
 #----------------------------------------

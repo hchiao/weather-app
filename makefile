@@ -7,17 +7,43 @@ deploy: ## Deploy weather app
 destroy: ## Destroy weather app
 	helm uninstall weather ./weather-helm
 
-login: ## Login in to GCP (For User)
+login-gcp: ## Login in to GCP (For User)
 	gcloud auth application-default login
 
-terraform-gke-init: ## Terraform init
+login-weather-cluster: ## Login to cluster (get kubeconfig)
+	gcloud container clusters get-credentials weather-cluster --region australia-southeast1 --project gke-hello-world-253604
+
+gke-init: ## Terraform init
 	terraform -chdir=./terraform-gke init
 
-terraform-gke-plan: ## Terraform plan
+gke-plan: ## Terraform plan
 	terraform -chdir=./terraform-gke plan
 
-terraform-gke-apply: ## Terraform apply
+gke-apply: ## Terraform apply
 	terraform -chdir=./terraform-gke apply
 
-terraform-gke-destroy: ## Terraform destroy
+gke-destroy: ## Terraform destroy
 	terraform -chdir=./terraform-gke destroy
+
+# https://secrets-store-csi-driver.sigs.k8s.io/getting-started/installation.html
+# https://github.com/GoogleCloudPlatform/secrets-store-csi-driver-provider-gcp
+# https://github.com/kubernetes-sigs/secrets-store-csi-driver/issues/600
+install-on-gke: ## Install post cluster components
+	cd ./post-cluster-install; \
+	helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts; \
+	helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver --namespace kube-system --set syncSecret.enabled=true; \
+	kubectl apply -f ./secrets-store-csi-driver-provider-gcp/deploy/provider-gcp-plugin.yaml; \
+	export PROJECT_ID=gke-hello-world-253604; \
+	export CLOUDSDK_CORE_PROJECT=$$PROJECT_ID; \
+	gcloud iam service-accounts create gke-workload; \
+	gcloud iam service-accounts add-iam-policy-binding --role roles/iam.workloadIdentityUser --member "serviceAccount:$$PROJECT_ID.svc.id.goog[default/mypodserviceaccount]" gke-workload@$$PROJECT_ID.iam.gserviceaccount.com; \
+	gcloud secrets add-iam-policy-binding testsecret --member=serviceAccount:gke-workload@$$PROJECT_ID.iam.gserviceaccount.com --role=roles/secretmanager.secretAccessor --project $$PROJECT_ID
+
+uninstall-on-gke: ## Uninstall post cluster components
+	cd ./post-cluster-install; \
+	export PROJECT_ID=gke-hello-world-253604; \
+	export CLOUDSDK_CORE_PROJECT=$$PROJECT_ID; \
+	gcloud iam service-accounts delete gke-workload@gke-hello-world-253604.iam.gserviceaccount.com; \
+	kubectl delete -f ./secrets-store-csi-driver-provider-gcp/deploy/provider-gcp-plugin.yaml; \
+	helm uninstall csi-secrets-store --namespace kube-system
+

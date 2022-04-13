@@ -10,18 +10,45 @@ This documentation would require for the following to be actioned on
 * Reserved an External IP address
 * Registered a domain from Cloud DNS
 * Create a secret in GCP Secret Manager
+* Binaries installed (e.g. kubectl, helm, terraform, make, gcloud)
+
+# Deployment of weather gke cluster
+
+Deploy cluster resources:
+
+1. `make gke-init`
+1. `make gke-plan`
+1. `make gke-apply`
+
+Deploy resources in the cluster:
+
+* `make install-on-gke`
 
 # Deployment of weather application
 
-1. `make deploy`
+The following command will deploy weather application on to the cluster:
 
-## Clean up
+* `make deploy`
 
-1. `make destroy`
+# Clean up
+
+## Clean up weather application
+
+* `make destroy`
+
+## Clean up weather cluster
+
+Clean up resources in the cluster:
+
+* `make uninstall-on-gke`
+
+Clean up the cluster:
+
+* `make gke-destroy`
 
 # Help
 
-1. `make help`
+* `make help`
 
 # TODO
 
@@ -32,4 +59,5 @@ This documentation would require for the following to be actioned on
 * CDN
 * terraform apply the plan file
 * terraform state file store remotely with lock
+* parameterise terraform
 * Testing
