@@ -7,3 +7,17 @@ deploy: ## Deploy weather app
 destroy: ## Destroy weather app
 	helm uninstall weather ./weather-helm
 
+login: ## Login in to GCP (For User)
+	gcloud auth application-default login
+
+terraform-gke-init: ## Terraform init
+	terraform -chdir=./terraform-gke init
+
+terraform-gke-plan: ## Terraform plan
+	terraform -chdir=./terraform-gke plan
+
+terraform-gke-apply: ## Terraform apply
+	terraform -chdir=./terraform-gke apply
+
+terraform-gke-destroy: ## Terraform destroy
+	terraform -chdir=./terraform-gke destroy

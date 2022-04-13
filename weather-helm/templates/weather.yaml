@@ -16,7 +16,9 @@ spec:
       labels:
         app: "weather"
     spec:
-      serviceAccountName: weatherserviceaccount
+      #serviceAccountName: "{{ .Values.ServiceAccountName }}"
+      serviceAccountName: mypodserviceaccount
+
       containers:
       - name: "weather-cont"
         env:
@@ -145,7 +147,8 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: weatherserviceaccount
+  name: mypodserviceaccount
   namespace: default
   annotations:
+    # Had issues as it couldn't pick up gcp-service-account, hard coding the value for now
     iam.gke.io/gcp-service-account: gke-workload@gke-hello-world-253604.iam.gserviceaccount.com
