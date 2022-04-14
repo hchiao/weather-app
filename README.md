@@ -12,35 +12,52 @@ This documentation would require for the following to be actioned on
 * Create a secret in GCP Secret Manager
 * Binaries installed (e.g. kubectl, helm, terraform, make, gcloud)
 
-# Deployment of weather gke cluster
+# Provision GKE weather cluster
 
-Deploy cluster resources:
+Deploying gke cluster:
 
+1. `make login-gcp`
 1. `make gke-init`
 1. `make gke-plan`
 1. `make gke-apply`
 
-Deploy resources in the cluster:
+Installing gke add-ons:
 
-* `make install-on-gke`
+1. `make login-gke`
+1. `make install-gke-add-ons`
 
 # Deployment of weather application
 
 The following command will deploy weather application on to the cluster:
 
-* `make deploy`
+1. `make login-gke`
+1. `make deploy`
+
+# Test access to weather app
+
+From your mobile phone or any browser access the following url
+
+```
+https://somenametoremember.com/weatherforecast
+
+or
+
+https://somenametoremember.com/health
+```
 
 # Clean up
 
 ## Clean up weather application
 
-* `make destroy`
+1. `make login-gke`
+1. `make destroy`
 
 ## Clean up weather cluster
 
 Clean up resources in the cluster:
 
-* `make uninstall-on-gke`
+1. `make login-gke`
+1. `make uninstall-gke-add-ons`
 
 Clean up the cluster:
 
@@ -52,6 +69,7 @@ Clean up the cluster:
 
 # TODO
 
+* Make secret config more dynamic
 * CI/CD
 * Network
 * RBAC

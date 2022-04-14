@@ -1,4 +1,12 @@
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{ .Values.ServiceAccountName }}"
+  namespace: "{{ .Values.namespace }}"
+  annotations:
+    iam.gke.io/gcp-service-account: "{{ .Values.gcp_service_account }}"
+---
 apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
@@ -74,73 +82,3 @@ spec:
     resource:
       name: "cpu"
       targetAverageUtilization: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: weather
-  namespace: "{{ .Values.namespace }}"
-  annotations:
-    # https://cloud.google.com/kubernetes-engine/docs/how-to/container-native-load-balancing#using-pod-readiness-feedback
-    # https://cloud.google.com/kubernetes-engine/docs/how-to/standalone-neg
-    # https://github.com/kubernetes/ingress-gce/issues/1463
-    cloud.google.com/neg: '{"ingress": true}'
-spec:
-  type: ClusterIP
-  selector:
-    app: "weather"
-  ports:
-    - name: http-80
-      protocol: TCP
-      port: {{ .Values.loadbalancer_port }}
-      targetPort: {{ .Values.container_port }}
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: basic-ingress
-  annotations:
-    kubernetes.io/ingress.global-static-ip-name: "{{ .Values.static_ip_name }}"
-    networking.gke.io/managed-certificates: managed-cert
-    kubernetes.io/ingress.class: "gce"
-spec:
-  defaultBackend:
-    service:
-      name: weather
-      port:
-        number: {{ .Values.loadbalancer_port }}
----
-apiVersion: networking.gke.io/v1
-kind: ManagedCertificate
-metadata:
-  name: managed-cert
-spec:
-  domains:
-    - "{{ .Values.domain }}"
----
-apiVersion: secrets-store.csi.x-k8s.io/v1
-kind: SecretProviderClass
-metadata:
-  name: app-secrets
-spec:
-  provider: gcp
-  secretObjects:
-  - secretName: apisecret
-    type: Opaque
-    data:
-    # https://secrets-store-csi-driver.sigs.k8s.io/topics/sync-as-kubernetes-secret.html
-    # https://github.com/GoogleCloudPlatform/secrets-store-csi-driver-provider-gcp/issues/37
-    - objectName: secret.txt
-      key: pwd
-  parameters:
-    secrets: |
-      - resourceName: "{{ .Values.gcp_secert_location }}"
-        fileName: secret.txt
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: "{{ .Values.ServiceAccountName }}"
-  namespace: "{{ .Values.namespace }}"
-  annotations:
-    iam.gke.io/gcp-service-account: "{{ .Values.gcp_service_account }}"
